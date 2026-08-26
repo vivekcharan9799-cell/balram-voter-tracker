@@ -1,4 +1,4 @@
-import { addCoordinator, getAllData, setTarget, getCoordinators } from '../../lib/db';
+import { addCoordinator, getAllData, setTarget, getCoordinators, deleteCoordinator } from '../../lib/db';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -23,6 +23,16 @@ export default async function handler(req, res) {
       const coordinator = await addCoordinator(name, password || '1234', phone);
       return res.status(200).json({ ok: true, coordinator });
     }
+    return res.status(200).json({ ok: true });
+  }
+
+  if (req.method === 'DELETE') {
+    const { adminPassword, id } = req.body;
+    if (adminPassword !== process.env.ADMIN_PASSWORD) {
+      return res.status(401).json({ ok: false, error: 'Not authorized' });
+    }
+    if (!id) return res.status(400).json({ ok: false, error: 'Coordinator id required' });
+    await deleteCoordinator(id);
     return res.status(200).json({ ok: true });
   }
 

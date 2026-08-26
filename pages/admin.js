@@ -57,6 +57,16 @@ export default function Admin() {
     load();
   }
 
+  async function removeCoordinator(c) {
+    if (!confirm(`Delete ${c.name} and all their data? This cannot be undone.`)) return;
+    await fetch('/api/coordinators', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminPassword, id: c.id }),
+    });
+    load();
+  }
+
   const totals = data.coordinators.reduce(
     (acc, c) => {
       acc.total += c.people.length;
@@ -176,6 +186,16 @@ export default function Admin() {
                   {showPasswordId === c.id ? `Password: ${c.password}` : 'Show password'}
                 </button>
               </div>
+              <button
+                className="btn small danger"
+                style={{ width: '100%', marginBottom: 10 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeCoordinator(c);
+                }}
+              >
+                🗑 Delete {c.name} & their data
+              </button>
 
               {expandedId === c.id && (
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, marginTop: 4 }}>

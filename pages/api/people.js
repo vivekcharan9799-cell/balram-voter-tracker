@@ -1,7 +1,7 @@
 import { getPeople, savePeople, getCoordinators, findDuplicatePhone } from '../../lib/db';
 
 export default async function handler(req, res) {
-  const { coordinatorId } = req.query;
+  const coordinatorId = req.query.coordinatorId || (req.body && req.body.coordinatorId);
   if (!coordinatorId) return res.status(400).json({ error: 'coordinatorId required' });
 
   if (req.method === 'GET') {
