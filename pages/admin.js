@@ -107,7 +107,7 @@ export default function Admin() {
         <form onSubmit={addCoordinator} className="grid-2">
           <input
             type="text"
-            placeholder="Coordinator name (e.g. Ali)"
+            placeholder="Coordinator name (e.g. Vivek)"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
           />
