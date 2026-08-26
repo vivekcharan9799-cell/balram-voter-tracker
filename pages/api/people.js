@@ -1,4 +1,4 @@
-import { getPeople, savePeople, getCoordinators } from '../../lib/db';
+import { getPeople, savePeople, getCoordinators, findDuplicatePhone } from '../../lib/db';
 
 export default async function handler(req, res) {
   const { coordinatorId } = req.query;
@@ -15,11 +15,25 @@ export default async function handler(req, res) {
     let people = await getPeople(coordinatorId);
 
     if (action === 'add') {
+      const digits = (person.phone || '').replace(/\D/g, '');
+      if (digits && digits.length !== 10) {
+        return res.status(400).json({ ok: false, error: 'Phone number must be exactly 10 digits.' });
+      }
+      if (digits) {
+        const dupName = await findDuplicatePhone(digits, coordinatorId);
+        if (dupName) {
+          return res.status(400).json({
+            ok: false,
+            error: `This number is already assigned to ${dupName}'s list.`,
+          });
+        }
+      }
       const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
       people.push({
         id,
         name: person.name,
-        phone: person.phone || '',
+        phone: digits,
+        state: person.state || '',
         status: 'not_voted', // not_voted | voted | not_interested
         note: person.note || '',
       });

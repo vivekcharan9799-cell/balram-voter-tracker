@@ -46,7 +46,7 @@ export default function Home() {
   return (
     <div className="page" style={{ maxWidth: 420 }}>
       <div className="eyebrow">Polling Day Command</div>
-      <h1 className="title">Balram — Voter Tracker</h1>
+      <h1 className="title">Polling Day Tracker</h1>
       <p className="subtitle">Log in to update or watch turnout live, booth-side.</p>
 
       <div className="panel">
@@ -63,7 +63,7 @@ export default function Home() {
             onClick={() => setRole('admin')}
             type="button"
           >
-            Balram / Admin
+            Organizer
           </button>
         </div>
 

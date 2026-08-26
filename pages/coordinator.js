@@ -3,6 +3,15 @@ import { useRouter } from 'next/router';
 import ProgressRing from '../lib/ProgressRing';
 import { getPollingStatus } from '../lib/pollingWindow';
 
+const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat',
+  'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh',
+  'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+  'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh',
+  'Uttarakhand', 'West Bengal', 'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Puducherry',
+  'Chandigarh', 'Other',
+];
+
 const STATUS_LABEL = {
   voted: 'Voted',
   not_voted: 'Not voted',
@@ -16,6 +25,8 @@ export default function Coordinator() {
   const [people, setPeople] = useState([]);
   const [newName, setNewName] = useState('');
   const [newPhone, setNewPhone] = useState('');
+  const [newState, setNewState] = useState('');
+  const [addError, setAddError] = useState('');
   const [pollStatus, setPollStatus] = useState(getPollingStatus());
 
   useEffect(() => {
@@ -40,18 +51,25 @@ export default function Coordinator() {
 
   async function addPerson(e) {
     e.preventDefault();
+    setAddError('');
     if (!newName.trim()) return;
-    await fetch('/api/people', {
+    const res = await fetch('/api/people', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         coordinatorId: id,
         action: 'add',
-        person: { name: newName, phone: newPhone },
+        person: { name: newName, phone: newPhone, state: newState },
       }),
     });
+    const data = await res.json();
+    if (!data.ok) {
+      setAddError(data.error || 'Could not add person');
+      return;
+    }
     setNewName('');
     setNewPhone('');
+    setNewState('');
     loadPeople(id);
   }
 
@@ -74,12 +92,15 @@ export default function Coordinator() {
   const pending = people.filter((p) => p.status !== 'voted');
 
   function waLink(phone, message) {
-    const clean = (phone || '').replace(/[^0-9+]/g, '');
-    return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
+    const clean = (phone || '').replace(/[^0-9]/g, '');
+    const withCode = clean.length === 10 ? `91${clean}` : clean;
+    return `https://wa.me/${withCode}?text=${encodeURIComponent(message)}`;
   }
 
   function callLink(phone) {
-    return `tel:${(phone || '').replace(/[^0-9+]/g, '')}`;
+    const clean = (phone || '').replace(/[^0-9]/g, '');
+    const withCode = clean.length === 10 ? `+91${clean}` : `+${clean}`;
+    return `tel:${withCode}`;
   }
 
   function reminderMessage(personName) {
@@ -109,10 +130,24 @@ export default function Coordinator() {
           />
           <input
             type="tel"
-            placeholder="Phone (with country code)"
+            placeholder="10-digit phone number"
             value={newPhone}
-            onChange={(e) => setNewPhone(e.target.value)}
+            maxLength={10}
+            onChange={(e) => setNewPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
           />
+          <select
+            value={newState}
+            onChange={(e) => setNewState(e.target.value)}
+            style={{ gridColumn: '1 / -1' }}
+          >
+            <option value="">State (where voter is from)</option>
+            {INDIAN_STATES.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+          {addError && (
+            <p style={{ color: 'var(--bad)', fontSize: 13, gridColumn: '1 / -1', margin: 0 }}>{addError}</p>
+          )}
           <button className="btn" type="submit" style={{ gridColumn: '1 / -1' }}>
             Add to my list
           </button>
@@ -125,7 +160,7 @@ export default function Coordinator() {
           <div className="card-row" style={{ marginBottom: 10 }}>
             <div>
               <strong>{p.name}</strong>
-              <div style={{ fontSize: 12, color: 'var(--muted)' }}>{p.phone}</div>
+              <div style={{ fontSize: 12, color: 'var(--muted)' }}>{p.phone}{p.state ? ` · ${p.state}` : ''}</div>
             </div>
             <span className={`status-pill status-${p.status}`}>{STATUS_LABEL[p.status]}</span>
           </div>
