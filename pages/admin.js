@@ -157,7 +157,7 @@ export default function Admin() {
                 <div>
                   <strong>{c.name}</strong>
                   <div style={{ fontSize: 12, color: 'var(--muted)' }}>
-                    {voted}/{total} voted · {notInterested} not interested
+                    {voted}/{total} appeared · {notInterested} not interested
                     {c.phone ? ` · ${c.phone}` : ''}
                   </div>
                 </div>
@@ -201,6 +201,16 @@ export default function Admin() {
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, marginTop: 4 }}>
                   {c.people.length === 0 && (
                     <p style={{ fontSize: 13, color: 'var(--muted)' }}>No people added yet.</p>
+                  )}
+                  {c.people.some((p) => p.state) && (
+                    <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 8 }}>
+                      States: {Object.entries(
+                        c.people.reduce((acc, p) => {
+                          if (p.state) acc[p.state] = (acc[p.state] || 0) + 1;
+                          return acc;
+                        }, {})
+                      ).map(([state, count]) => `${state} (${count})`).join(', ')}
+                    </p>
                   )}
                   {c.people.map((p) => (
                     <div key={p.id} className="card-row" style={{ padding: '6px 0' }}>

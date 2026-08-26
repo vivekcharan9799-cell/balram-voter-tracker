@@ -13,8 +13,8 @@ const INDIAN_STATES = [
 ];
 
 const STATUS_LABEL = {
-  voted: 'Voted',
-  not_voted: 'Not voted',
+  voted: 'Appeared',
+  not_voted: 'Pending',
   not_interested: 'Not interested',
 };
 
@@ -116,7 +116,7 @@ export default function Coordinator() {
       <p className="subtitle">{pollStatus.label}</p>
 
       <div className="ring-wrap">
-        <ProgressRing percent={percent} label={`${voted} of ${total} voted`} />
+        <ProgressRing percent={percent} label={`${voted} of ${total} appeared`} />
       </div>
 
       <div className="panel">
@@ -140,7 +140,7 @@ export default function Coordinator() {
             onChange={(e) => setNewState(e.target.value)}
             style={{ gridColumn: '1 / -1' }}
           >
-            <option value="">State (where voter is from)</option>
+            <option value="">Preferred state (optional)</option>
             {INDIAN_STATES.map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
@@ -162,10 +162,12 @@ export default function Coordinator() {
               <strong>{p.name}</strong>
               <div style={{ fontSize: 12, color: 'var(--muted)' }}>{p.phone}{p.state ? ` · ${p.state}` : ''}</div>
             </div>
-            <span className={`status-pill status-${p.status}`}>{STATUS_LABEL[p.status]}</span>
+            {p.status !== 'not_voted' && (
+              <span className={`status-pill status-${p.status}`}>{STATUS_LABEL[p.status]}</span>
+            )}
           </div>
           <div className="grid-2" style={{ marginBottom: 8 }}>
-            <button className="btn small" onClick={() => setStatus(p, 'voted')}>Mark voted</button>
+            <button className="btn small" onClick={() => setStatus(p, 'voted')}>Mark appeared</button>
             <button className="btn small secondary" onClick={() => setStatus(p, 'not_interested')}>Not interested</button>
           </div>
           {p.status !== 'voted' && (
